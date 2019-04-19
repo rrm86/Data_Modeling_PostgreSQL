@@ -1,12 +1,31 @@
+"""
+This file implements the
+ETL process.
+"""
 import os
 import glob
 import psycopg2
 import pandas as pd
-from sql_queries import *
 from user_agents import parse
+from sql_queries import *
+
 
 
 def process_song_file(cur, filepath):
+    """
+    Process Song files.
+
+    Load Data into dataframe.
+    Clean, transform and insert into
+    song and artist tables.
+
+    Parameters:
+    cur (psycopg2.extension.cursor): Allows Python code to execute
+    PostgreSQL command in a database session
+
+    filepath (str): Path to file
+    """
+
     # open song file
     df = pd.read_json(filepath, lines=True)
     # check data quality
@@ -28,6 +47,19 @@ def process_song_file(cur, filepath):
 
 
 def process_log_file(cur, filepath):
+    """
+    Process Log files.
+
+    Load Data into dataframe.
+    Clean, transform and insert into
+    time, user, songplay and useragent tables.
+
+    Parameters:
+    cur (psycopg2.extension.cursor): Allows Python code to execute
+    PostgreSQL command in a database session
+
+    filepath (str): Path to file
+    """
     # open log file
     df = pd.read_json(filepath, lines=True)
     # check data quality
@@ -106,8 +138,8 @@ def process_log_file(cur, filepath):
             os_version = user_agent.os.version_string
         else:
             os_version = None
-            
-        if (user_agent.os.family == 'Linux'):
+
+        if user_agent.os.family == 'Linux':
             os_family = 'Other Linux'
         else:
             os_family = user_agent.os.family
@@ -120,6 +152,23 @@ def process_log_file(cur, filepath):
 
 
 def process_data(cur, conn, filepath, func):
+    """
+    Read all files.
+
+    Read files inside folders and call functions.
+
+    Parameters:
+    cur (psycopg2.extension.cursor): Allows Python code to execute
+    PostgreSQL command in a database session
+
+    conn(psycopg2.extensions.connection): Handles the connection
+    to a PostgreSQL database instance
+
+    filepath(str): Path to file
+
+    func(function): Call the appropriate function.
+
+    """
     # get all files matching extension from directory
     all_files = []
     for root, dirs, files in os.walk(filepath):
@@ -139,6 +188,7 @@ def process_data(cur, conn, filepath, func):
 
 
 def main():
+    "Main function"
     conn = psycopg2.connect("host=127.0.0.1 \
                             dbname=sparkifydb \
                             user=student \
